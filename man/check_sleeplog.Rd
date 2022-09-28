@@ -11,7 +11,12 @@ check_sleeplog(
   nnights = c(),
   sleeplogidnum = TRUE,
   sleeplogsep = ",",
-  desiredtz = ""
+  desiredtz = "",
+  meta.sleep.folder = c(),
+  SPTlowerLimit = 4,
+  SPTupperLimit = 10,
+  advanced_sleeplog = FALSE,
+  outputfile = c()
 )
 }
 \arguments{
@@ -28,6 +33,19 @@ check_sleeplog(
 \item{sleeplogsep}{Value used as sep argument for reading sleeplog csv file, usually "," or ";".}
 
 \item{desiredtz}{Character (default = "", i.e., system timezone). Timezone in which device was configured and experiments took place. If experiments took place in a different timezone, then use this argument for the timezone in which the experiments took place and argument configtz to specify where the device was configured. See also https://en.wikipedia.org/wiki/Zone.tab}
+
+\item{meta.sleep.folder}{Path to part3 milestone data, only specify if sleeplog is in advanced format.}
+
+\item{SPTlowerLimit}{Limit to define a extremely short night in hours}
+
+\item{SPTupperLimit}{Limit to define a extremely long night in hours}
+
+\item{advanced_sleeplog}{Logical, if sleeplog is formatted as advanced or basic GGIR format}
+
+\item{outputfile}{If defined, path to xlsx file to store the output}
+}
+\value{
+Save excel file with extremely short and long nights, daysleeper nights, and missing nigths from sleeplog.
 }
 \description{
 Function to try to read a sleeplog (csv file) by the GGIR package
