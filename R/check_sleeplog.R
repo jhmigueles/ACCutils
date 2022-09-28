@@ -123,7 +123,10 @@ check_sleeplog = function(loglocation, coln1 = c(), colid = c(), nnights = c(),
 
   # output summary: nights to revise
   SUM = data.frame(Issue = c("Revise formatting", "Short nights", "Long nights", "Day sleeper", "Missing nights", "TOTAL"),
-                   Times = c(length(rFormat), length(shortSPT), length(longSPT), length(daysleeper), nrow(missing_nights),
+                   Description = c("Time format has an unexpected character (e.g., letters, points)",
+                                   shortMessage, longMessage, dayslMessage,
+                                   "Missing, sleeplog will not be used for this night", ""),
+                   N = c(length(rFormat), length(shortSPT), length(longSPT), length(daysleeper), nrow(missing_nights),
                              sum(c(length(rFormat), length(shortSPT), length(longSPT), length(daysleeper), nrow(missing_nights)))))
 
   # save to excel file
