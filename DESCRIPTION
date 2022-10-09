@@ -7,5 +7,6 @@ Maintainer: Jairo Hidalgo Migueles <jairo.hidalgo.migueles@gmail.com>
 Description: Functions and utilities that I use frequently to process and quality check the accelerometer data collected with different brands.
 License: GPL (>= 3)
 Encoding: UTF-8
+Imports: GGIR, openxlsx
 LazyData: true
 RoxygenNote: 7.2.1
