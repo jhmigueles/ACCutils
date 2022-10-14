@@ -39,7 +39,7 @@ check_sleeplog = function(loglocation, coln1 = c(), colid = c(), nnights = c(),
 
 
   # get data
-  sleeplog = log$sleeplog
+  sleeplog = log$sleeplog; sleeplog$duration = as.numeric(sleeplog$duration)
   nonwearlog = log$nonwearlog
   naplog = log$naplog
   rm(log); gc()
@@ -55,21 +55,33 @@ check_sleeplog = function(loglocation, coln1 = c(), colid = c(), nnights = c(),
   rFormat = c(rPunct_onset, rPunct_wake, rLetters_onset, rLetters_wake, rSemiColon_onset, rSemiColon_wake)
   rFormat_Message = "Revise formatting of these timestamps"
 
-  formatDurs = round(sleeplog$duration[rFormat], 1)
-  formatOnsets = sleeplog$sleeponset[rFormat]
-  formatWakes = sleeplog$sleepwake[rFormat]
+  if (length(rFormat) > 0) {
+    formatDurs = round(sleeplog$duration[rFormat], 1)
+    formatOnsets = sleeplog$sleeponset[rFormat]
+    formatWakes = sleeplog$sleepwake[rFormat]
+  } else {
+    formatDurs = formatOnsets = formatWakes = c()
+  }
 
   # short or long nights
   shortSPT = which(sleeplog$duration <= SPTlowerLimit)
-  shortDurs = round(sleeplog$duration[shortSPT], 1)
-  shortOnsets = sleeplog$sleeponset[shortSPT]
-  shortWakes = sleeplog$sleepwake[shortSPT]
+  if (length(shortSPT) > 0) {
+    shortDurs = round(sleeplog$duration[shortSPT], 1)
+    shortOnsets = sleeplog$sleeponset[shortSPT]
+    shortWakes = sleeplog$sleepwake[shortSPT]
+  } else {
+    shortDurs = shortOnsets = shortWakes = c()
+  }
   shortMessage = paste0("Night shorter than ", SPTlowerLimit, " hours")
 
   longSPT = which(sleeplog$duration >= SPTupperLimit)
-  longDurs = round(sleeplog$duration[longSPT], 1)
-  longOnsets = sleeplog$sleeponset[longSPT]
-  longWakes = sleeplog$sleepwake[longSPT]
+  if (length(longSPT) > 0) {
+    longDurs = round(sleeplog$duration[longSPT], 1)
+    longOnsets = sleeplog$sleeponset[longSPT]
+    longWakes = sleeplog$sleepwake[longSPT]
+  } else {
+    longDurs = longOnsets = longWakes = c()
+  }
   longMessage = paste0("Night longer than ", SPTupperLimit, " hours")
 
   # daysleeper

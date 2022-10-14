@@ -2,5 +2,7 @@
 
 export(check_naplog)
 export(check_sleeplog)
+export(postGGIR_revise_sleeplog)
+export(visualize_conflicting_nights)
 import(openxlsx)
 importFrom(GGIR,g.loadlog)
