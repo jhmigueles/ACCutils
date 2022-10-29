@@ -6,13 +6,18 @@
 \usage{
 visualize_conflicting_nights(
   outputfolder,
+  NS,
   NSconflicts,
   desiredtz = "Europe/Madrid",
+  onset_0 = c("sleeponset_ts", "sleeponset_ts_auto")[2],
+  onset_1 = c("guider_onset_ts", "guider_inbedStart_ts", "sleeponset_ts_sleeplog")[3],
+  wake_0 = c("wakeup_ts", "wakeup_ts_auto")[2],
+  wake_1 = c("guider_wakeup_ts", "guider_inbedEnd_ts", "wakeup_ts_sleeplog")[3],
   outputplotname
 )
 }
 \arguments{
-\item{outputplotname}{}
+\item{wake_1}{}
 }
 \description{
 Title
