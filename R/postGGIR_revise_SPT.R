@@ -50,6 +50,11 @@ postGGIR_revise_SPT = function(outputfolder, desiredtz, criterror = 4,
     onset_1 = tsVars[3]; wake_1 = tsVars[4]
 
     # visualize nights
+    if (outputplotname == "" | length(outputplotname) == 0) outputplotname = "nights2revise.pdf"
+    if (tools::file_ext(outputplotname) != "pdf") {
+      ext = tools::file_ext(outputplotname)
+      if (ext == "") outputplotname = paste0(outputplotname, ".pdf") else outputplotname = gsub(ext, "pdf", outputfile)
+    }
     visualize_conflicting_nights(outputfolder = outputfolder,
                                  NS = NS,
                                  NSconflicts = NSconflicts,
@@ -58,11 +63,19 @@ postGGIR_revise_SPT = function(outputfolder, desiredtz, criterror = 4,
                                  wake_0 = wake_0, wake_1 = wake_1,
                                  outputplotname = outputplotname)
 
-    # save to excel file
-    openxlsx::write.xlsx(x = NSconflicts, file = file.path(dirname(outputfolder),outputfile),
-                         asTable = T, overwrite = TRUE,
-                         creator = "Jairo Hidalgo Migueles", sheetName = "Nights to revise",
-                         firstRow = TRUE, firstCol = TRUE, colWidths = "auto", na.string = " ")
+    # data cleaning file template
+    data_cleaning_file = NSconflicts[, c("ID", "night", "night", "night")]
+    colnames(data_cleaning_file) = c("ID", "day_part5", "relyonguider_part4", "night_part4")
+    data_cleaning_file$day_part5 = NA
+
+    # save data cleaning file
+    if (outputfile == "" | length(outputfile) == 0) outputfile = "data_cleaning_part4.csv"
+    if (tools::file_ext(outputfile) != "csv") {
+      ext = tools::file_ext(outputfile)
+      if (ext == "") outputfile = paste0(outputfile, ".csv") else outputfile = gsub(ext, "csv", outputfile)
+    }
+    write.csv(x = data_cleaning_file, file = file.path(dirname(outputfolder),outputfile),
+              row.names = FALSE, na = "")
   } else {
     cat("\nNo short, long, or incoherent nights according to sleeplog")
   }

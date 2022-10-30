@@ -41,14 +41,31 @@ visualize_conflicting_nights = function(outputfolder, NS, NSconflicts, desiredtz
 
     # identify starting and endpoint
     fromTime = c(NSconflicts[i, onset_0], NSconflicts[i, onset_1])
-    fromDate = as.POSIXct(NSconflicts$calendar_date[i], tz = desiredtz, format = "%d/%m/%Y")
+    fromDate = rep(as.POSIXct(NSconflicts$calendar_date[i], tz = desiredtz, format = "%d/%m/%Y"), 2)
     hour = lubridate::hour(strptime(fromTime, format("%H:%M:%S")))
-    if (min(hour) >= 0 & min(hour) < 16) fromDate = as.Date(fromDate, tz = desiredtz) + 1 # to match day classification in visual reports
+    for (hi in 1:2) {
+      if (hour[hi] >= 0 & hour[hi] < 16) {
+        # +1 day to match day classification in visual reports
+        fromDate[hi] = trunc(fromDate[hi] + 60*60*26, "days")
+      }
+    }
     from_tmp = as.POSIXct(paste(fromDate, fromTime))
 
     toTime = c(NSconflicts[i, wake_0], NSconflicts[i, wake_1])
     toDate = trunc(fromDate + 60*60*26, "days")
-    if (min(hour) >= 0 & min(hour) < 16) toDate = fromDate # to match day classification in visual reports
+    # when fell asleep after midnight, todate and fromdate are the same
+    for (hi in 1:2) {
+      if (hour[hi] >= 0 & hour[hi] < 16) {
+        toDate[hi] = fromDate[hi]
+      }
+    }
+    # when estimated wake up is before midnight
+    hour_wake = lubridate::hour(strptime(toTime, format("%H:%M:%S")))
+    for (hi in 1:2) {
+      if (hour_wake[hi] >= 18 & hour[hi] < 24) {
+        toDate[hi] = trunc(toDate[hi] - 60*60*22, "days")
+      }
+    }
     to_tmp = as.POSIXct(paste(toDate, toTime))
 
     # identify in dataset
