@@ -11,12 +11,13 @@ postGGIR_revise_SPT(
   SPTlowerLimit = 4,
   SPTupperLimit = 10,
   excludefirstlast = FALSE,
+  method = c("all", "last")[1],
   outputfile,
   outputplotname
 )
 }
 \arguments{
-\item{SPTupperLimit}{}
+\item{method}{}
 }
 \description{
 Title

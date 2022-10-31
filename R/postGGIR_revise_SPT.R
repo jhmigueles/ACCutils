@@ -7,6 +7,8 @@
 #' @param desiredtz
 #' @param SPTlowerLimit
 #' @param SPTupperLimit
+#' @param excludefirstlast
+#' @param method
 #'
 #' @return
 #' @export
@@ -15,33 +17,44 @@
 postGGIR_revise_SPT = function(outputfolder, desiredtz, criterror = 4,
                                SPTlowerLimit = 4, SPTupperLimit = 10,
                                excludefirstlast = FALSE,
+                               method = c("all", "last")[1],
                                outputfile, outputplotname) {
   # load full nightsummary report
   p4path = grep("part4_nightsummary_sleep_full",
                 dir(outputfolder, recursive = T, full.names = T), value = T)
   NS = data.table::fread(p4path, data.table = FALSE)
 
-  # Identify nights below and above limits
-  nights2rev = which(NS$SptDuration <= SPTlowerLimit | NS$SptDuration >= SPTupperLimit)
+  if (method == "all") {
+    # Identify nights below and above limits
+    nights2rev = which(NS$SptDuration <= SPTlowerLimit | NS$SptDuration >= SPTupperLimit)
 
-  # Identify nights with high criterrors
-  error_onset = which(abs(NS$error_onset) >= criterror)
-  error_wake = which(abs(NS$error_wake) >= criterror)
-  nights2rev = sort(unique(c(nights2rev, error_onset, error_wake)))
+    # Identify nights with high criterrors
+    error_onset = which(abs(NS$error_onset) >= criterror)
+    error_wake = which(abs(NS$error_wake) >= criterror)
+    nights2rev = sort(unique(c(nights2rev, error_onset, error_wake)))
 
-  # guiders for those nights
-  NSconflicts = NS[nights2rev, ]
+    # guiders for those nights
+    NSconflicts = NS[nights2rev, ]
 
-  # exclude first last?
-  if (excludefirstlast) {
-    exclude = c()
-    for (i in 1:nrow(NSconflicts)) {
-      is_first_last = NSconflicts$night[i] %in% c(range(NS$night[which(NS$ID == NSconflicts$ID[i])]))
-      if (is_first_last) exclude = c(exclude,i)
+    # exclude first last?
+    if (excludefirstlast) {
+      exclude = c()
+      for (i in 1:nrow(NSconflicts)) {
+        is_first_last = NSconflicts$night[i] %in% c(range(NS$night[which(NS$ID == NSconflicts$ID[i])]))
+        if (is_first_last) exclude = c(exclude,i)
+      }
+      NSconflicts = NSconflicts[-exclude,]
     }
-    NSconflicts = NSconflicts[-exclude,]
+  } else if (method == "last") {
+    revise = c()
+    for (i in 1:nrow(NSconflicts)) {
+      is_last = NSconflicts$night[i] %in% max(NS$night[which(NS$ID == NSconflicts$ID[i])])
+      if (is_last) revise = c(revise,i)
+    }
+    NSconflicts = NSconflicts[revise,]
   }
 
+  # revise nights
   if (nrow(NSconflicts) > 0) {
 
     # identify auto and guider onset and wakeups
