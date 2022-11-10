@@ -29,7 +29,9 @@ visualize_conflicting_nights = function(outputfolder, NS, NSconflicts, desiredtz
   pdf(file.path(dirname(outputfolder),outputplotname), paper = "a4",
       height = 24, width = 18)
   par(las = 1, mar = c(3, 4, 3, 1), mfrow = c(4, 1))
+  # bi = which(NSconflicts$ID == "053c")[1]
   for (i in 1:nrow(NSconflicts)) {
+    # if (i > bi) browser()
     # load M data from basic
     path = file.path(outputfolder, paste0("meta/basic/meta_", NSconflicts$filename[i]))
     path2 = file.path(outputfolder, paste0("meta/ms2.out/", NSconflicts$filename[i]))
