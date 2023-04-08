@@ -9,7 +9,6 @@ check_sleeplog(
   coln1 = c(),
   colid = c(),
   nnights = c(),
-  sleeplogidnum = TRUE,
   sleeplogsep = ",",
   desiredtz = "",
   meta.sleep.folder = c(),
@@ -27,8 +26,6 @@ check_sleeplog(
 \item{colid}{Column number in the sleep log spreadsheet in which the participant ID code is stored (default = 1)}
 
 \item{nnights}{Number of nights for which sleep log information should be available. It assumes that this is constant within a study. If sleep log information is missing for certain nights then leave these blank}
-
-\item{sleeplogidnum}{Should the participant identifier as stored in the sleeplog be interpretted as a number (TRUE=default) or a character (FALSE)?}
 
 \item{sleeplogsep}{Value used as sep argument for reading sleeplog csv file, usually "," or ";".}
 

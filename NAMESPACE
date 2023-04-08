@@ -3,7 +3,7 @@
 export(GGIR_automatic_vs_sleeplog)
 export(check_naplog)
 export(check_sleeplog)
-export(fix_id_dates_sleeplog)
+export(fix_sleeplog)
 export(postGGIR_revise_SPT)
 export(visualize_conflicting_nights)
 import(GGIR)

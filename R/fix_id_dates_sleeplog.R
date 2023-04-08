@@ -11,7 +11,7 @@
 #' @return Save excel and csv file with new sleeplog to be read by GGIR
 #' @export
 #' @import openxlsx
-fix_id_dates_sleeplog = function(loglocation, colid, meta.sleep.folder,
+fix_sleeplog = function(loglocation, colid, meta.sleep.folder,
                                  advanced_sleeplog = TRUE,
                                  dateformat = "%d/%m/%Y",
                                  outputxlsx,
@@ -56,7 +56,6 @@ fix_id_dates_sleeplog = function(loglocation, colid, meta.sleep.folder,
 
       # fix ID if needed
       log[i, colid] = ID
-      # openxlsx::writeData(wb = log2, sheet = 1, x = ID, startCol = colid, startRow = i)
       if (ID != id) {
         cols = c(cols, colid)
         rows = c(rows, i + 1)
@@ -67,8 +66,6 @@ fix_id_dates_sleeplog = function(loglocation, colid, meta.sleep.folder,
       rec_startdate = as.POSIXct(substr(rec_starttime, 1, 10), tz = "")
 
       log[i, datecols[1]] = as.character(rec_startdate)
-      # openxlsx::writeData(wb = log2, sheet = 1, x = as.character(rec_startdate),
-      #                     startCol = datecols[1], startRow = i)
 
       if (is.na(log_startdate)) {
         cols = c(cols, datecols[1])
@@ -100,11 +97,8 @@ fix_id_dates_sleeplog = function(loglocation, colid, meta.sleep.folder,
           }
         }
 
-        # to log
         log_date = as.POSIXct(log[i, curdatecol], format = dateformat, tz = "")
         log[i, curdatecol] = as.character(curdate)
-        # openxlsx::writeData(wb = log2, sheet = 1, x = as.character(curdate),
-        #                     startCol = curdatecol, startRow = i)
 
         if (is.na(log_date)) {
           cols = c(cols, curdatecol)
@@ -114,6 +108,36 @@ fix_id_dates_sleeplog = function(loglocation, colid, meta.sleep.folder,
           rows = c(rows, i + 1)
         }
       }
+
+      # punctuation typos in times
+      for (curdatecol in datecols) {
+        nextdatecol = datecols[which(datecols == curdatecol) + 1]
+        if (is.na(nextdatecol)) nextdatecol = ncol(log) + 1
+        columns2revise = (curdatecol + 1):(nextdatecol - 1)
+
+        for (column in columns2revise) {
+          rPunct = rLetters = c()
+          rPunct = grep("(?![:])[[:punct:]]", log[, column], perl = TRUE)
+          rLetters = grep("[A-z]", log[, column])
+
+          if (length(rPunct) > 0) {
+            log[rPunct, column] = gsub("(?![:])[[:punct:]]", ":", log[rPunct, column], perl = TRUE)
+            cols = c(cols, rep(column, length(rPunct)))
+            rows = c(rows, rPunct + 1)
+          }
+
+          if (length(rLetters) > 0) {
+            log[rLetters, column] = gsub("[A-z]", "", log[rLetters, column], perl = TRUE)
+            cols = c(cols, rep(column, length(rLetters)))
+            rows = c(rows, rLetters + 1)
+          }
+
+        }
+
+
+      }
+
+
     }
 
     # create workbook
