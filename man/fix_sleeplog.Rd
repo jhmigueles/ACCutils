@@ -10,6 +10,7 @@ fix_sleeplog(
   meta.sleep.folder,
   advanced_sleeplog = TRUE,
   dateformat = "\%d/\%m/\%Y",
+  fix_start_date_diff = 30,
   outputxlsx,
   outputGGIR
 )

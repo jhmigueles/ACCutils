@@ -12,10 +12,11 @@
 #' @export
 #' @import openxlsx
 fix_sleeplog = function(loglocation, colid, meta.sleep.folder,
-                                 advanced_sleeplog = TRUE,
-                                 dateformat = "%d/%m/%Y",
-                                 outputxlsx,
-                                 outputGGIR) {
+                        advanced_sleeplog = TRUE,
+                        dateformat = "%d/%m/%Y",
+                        fix_start_date_diff = 30,
+                        outputxlsx,
+                        outputGGIR) {
   # read sleeplog
   log = read.csv(loglocation)
 
@@ -51,35 +52,60 @@ fix_sleeplog = function(loglocation, colid, meta.sleep.folder,
       # load ID part 3
       id = log[i, colid]
       ID = rec_starttime = NA      # metadata part 3
-      file2load = grep(id, m3files)
-      if (length(file2load) == 1) load(m3files_fn[file2load]) else stop(paste0("ID: ", id, " not matched"))
+      file2load = grep(paste0("^",id), m3files)
+      if (length(file2load) == 1) {
+        load(m3files_fn[file2load])
+        matched = TRUE
+      } else if (length(file2load) == 0) {
+        warning(paste0("ID: ", id, " not matched"))
+        matched = FALSE
+      }
 
       # fix ID if needed
-      log[i, colid] = ID
-      if (ID != id) {
-        cols = c(cols, colid)
-        rows = c(rows, i + 1)
+      if (matched == TRUE) {
+        log[i, colid] = ID
+        if (ID != id) {
+          cols = c(cols, colid)
+          rows = c(rows, i + 1)
+        }
       }
 
       # start date
       log_startdate = as.POSIXct(log[i, datecols[1]], format = dateformat, tz = "")
-      rec_startdate = as.POSIXct(substr(rec_starttime, 1, 10), tz = "")
+      firstdate = log_startdate
+      if (matched == TRUE) rec_startdate = as.POSIXct(substr(rec_starttime, 1, 10), tz = "")
+      if (matched == FALSE) rec_startdate = log_startdate
 
-      log[i, datecols[1]] = as.character(rec_startdate)
+      if (!is.na(log_startdate)) {
+        if (abs(difftime(log_startdate, rec_startdate)) > fix_start_date_diff) {
+          log[i, datecols[1]] = as.character(rec_startdate)
+          firstdate = rec_startdate
 
-      if (is.na(log_startdate)) {
-        cols = c(cols, datecols[1])
-        rows = c(rows, i + 1)
-      } else if (log_startdate != rec_startdate) {
+          if (log_startdate != log[i, datecols[1]]) {
+            cols = c(cols, datecols[1])
+            rows = c(rows, i + 1)
+          }
+        } else {
+          log[i, datecols[1]] = as.character(log_startdate)
+          firstdate = log_startdate
+        }
+      } else {
+        # are there future dates in sleeplog?
+        futuredates = datecols[which(!is.na(log[i, datecols]) & nchar(log[i, datecols]) > 2)]
+        if (length(futuredates) == 0) log_startdate = rec_startdate
+        log[i, datecols[1]] = as.character(rec_startdate)
+        firstdate = rec_startdate
         cols = c(cols, datecols[1])
         rows = c(rows, i + 1)
       }
+
+
 
       # next dates
       for (curdatecol in datecols[-1]) {
         if (curdatecol == datecols[2]) {
           curdate = c()
-          prev_date = rec_startdate
+          prev_date = firstdate
         } else {
           prev_date = curdate
         }
@@ -88,11 +114,12 @@ fix_sleeplog = function(loglocation, colid, meta.sleep.folder,
         curdate = prev_date + as.difftime(1, units = "days")
         curdatechar = as.character(curdate)
         if (nchar(curdatechar) > 10) {
+          curdatechar_bu = curdatechar
           curdatechar = substr(curdatechar, 1, 10)
           curdate = as.POSIXct(curdatechar, tz = "")
-          if (substr(curdatechar, 12, 13) == "23") {
-            curdate = prev_date + as.difftime(1, units = "days")
-            curdatechar = substr(curdatechar, 1, 10)
+          if (substr(curdatechar_bu, 12, 13) == "23") {
+            curdate = prev_date + as.difftime(1.5, units = "days")
+            curdatechar = substr(as.character(curdate), 1, 10)
             curdate = as.POSIXct(curdatechar, tz = "")
           }
         }
@@ -131,13 +158,8 @@ fix_sleeplog = function(loglocation, colid, meta.sleep.folder,
             cols = c(cols, rep(column, length(rLetters)))
             rows = c(rows, rLetters + 1)
           }
-
         }
-
-
       }
-
-
     }
 
     # create workbook
