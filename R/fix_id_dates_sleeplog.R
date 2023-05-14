@@ -51,6 +51,7 @@ fix_sleeplog = function(loglocation, colid, meta.sleep.folder,
     for (i in 1:nrow(log)) {
       # load ID part 3
       id = log[i, colid]
+      cat(id, " ")
       ID = rec_starttime = NA      # metadata part 3
       file2load = grep(paste0("^",id), m3files)
       if (length(file2load) == 1) {
@@ -59,6 +60,7 @@ fix_sleeplog = function(loglocation, colid, meta.sleep.folder,
       } else if (length(file2load) == 0) {
         warning(paste0("ID: ", id, " not matched"))
         matched = FALSE
+        next
       }
 
       # fix ID if needed
