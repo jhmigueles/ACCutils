@@ -21,8 +21,20 @@ postGGIR_revise_SPT = function(outputfolder, desiredtz, criterror = 4,
                                outputfile, outputplotname) {
   # load full nightsummary report
   p4path = grep("part4_nightsummary_sleep_full",
-                dir(outputfolder, recursive = T, full.names = T), value = T)
+                dir(outputfolder, recursive = T, full.names = T), value = T)[1]
   NS = data.table::fread(p4path, data.table = FALSE)
+
+  p4path = grep("part4_nightsummary_sleep_cl",
+                dir(outputfolder, recursive = T, full.names = T), value = T)[1]
+  NSclean = data.table::fread(p4path, data.table = FALSE)
+
+  p5path = grep("part5_daysummary_MM",
+                dir(outputfolder, recursive = T, full.names = T), value = T)[1]
+  DS = data.table::fread(p5path, data.table = FALSE)
+
+  p5path = grep("part5_daysummary_full_MM",
+                dir(outputfolder, recursive = T, full.names = T), value = T)[1]
+  DSFull = data.table::fread(p5path, data.table = FALSE)
 
   # identify auto and guider onset and wakeups
   tsVars = grep("_ts", colnames(NS), value = T)
@@ -34,7 +46,9 @@ postGGIR_revise_SPT = function(outputfolder, desiredtz, criterror = 4,
     nights2rev = which(NS$SptDuration <= SPTlowerLimit | NS$SptDuration >= SPTupperLimit)
 
     IDs = unique(NS$ID)
+    cat("\nRevising nights from participant: ")
     for (i in 1:length(IDs)) {
+      cat(IDs[i], " ")
       expected_nights = 1:(max(NS$night[which(NS$ID == IDs[i])]))
       available = NS$night[which(NS$ID == IDs[i])]
       missing = which(!(expected_nights %in% available))
@@ -101,31 +115,52 @@ postGGIR_revise_SPT = function(outputfolder, desiredtz, criterror = 4,
   if (nrow(NSconflicts) > 0) {
 
     # visualize nights
-    if (outputplotname == "" | length(outputplotname) == 0) outputplotname = "nights2revise.pdf"
-    if (tools::file_ext(outputplotname) != "pdf") {
-      ext = tools::file_ext(outputplotname)
-      if (ext == "") outputplotname = paste0(outputplotname, ".pdf") else outputplotname = gsub(ext, "pdf", outputfile)
-    }
-    visualize_conflicting_nights(outputfolder = outputfolder,
-                                 NS = NS,
-                                 NSconflicts = NSconflicts,
-                                 desiredtz = desiredtz,
-                                 onset_0 = onset_0, onset_1 = onset_1,
-                                 wake_0 = wake_0, wake_1 = wake_1,
-                                 outputplotname = outputplotname)
+    # if (outputplotname == "" | length(outputplotname) == 0) outputplotname = "nights2revise.pdf"
+    # if (tools::file_ext(outputplotname) != "pdf") {
+    #   ext = tools::file_ext(outputplotname)
+    #   if (ext == "") outputplotname = paste0(outputplotname, ".pdf") else outputplotname = gsub(ext, "pdf", outputfile)
+    # }
+    # visualize_conflicting_nights(outputfolder = outputfolder,
+    #                              NS = NS,
+    #                              NSconflicts = NSconflicts,
+    #                              desiredtz = desiredtz,
+    #                              onset_0 = onset_0, onset_1 = onset_1,
+    #                              wake_0 = wake_0, wake_1 = wake_1,
+    #                              outputplotname = outputplotname)
 
     # data cleaning file template
     data_cleaning_file = NSconflicts[, c("ID", "night", "night", "night")]
     colnames(data_cleaning_file) = c("ID", "day_part5", "relyonguider_part4", "night_part4")
-    data_cleaning_file$day_part5 = NA
+    data_cleaning_file$day_part5 = data_cleaning_file$day_part5 + 1 # +1 bc is MM window
+    # if NSconflicts are already excluded from clean files, then remove
+    for (i in 1:nrow(data_cleaning_file)) {
+      id = data_cleaning_file$ID[i]
+      night = data_cleaning_file$night[i]
+      # P4
+      p4Clean_i = which(NSclean$ID == id & NSclean$night == night)
+      if (length(p4Clean_i) == 0) {
+        data_cleaning_file[i, 3:4] = NA
+      }
+      # P5
+      p5Clean_i = which(DS$ID == id & DS$night_number == night + 1)
+      if (length(p5Clean_i) > 0) is_exluded_p5 = FALSE else is_exluded_p5 = TRUE
+      if (length(p5Clean_i) == 0) {
+        data_cleaning_file[i, 2] = NA
+      }
+    }
+
+    rows_to_rm = which(is.na(data_cleaning_file[, 2]) &
+                         is.na(data_cleaning_file[, 3]) &
+                         is.na(data_cleaning_file[, 4]))
+    if (length(rows_to_rm) > 0) data_cleaning_file = data_cleaning_file[-rows_to_rm,]
 
     # save data cleaning file
-    if (outputfile == "" | length(outputfile) == 0) outputfile = "data_cleaning_part4.csv"
+    if (outputfile == "" | length(outputfile) == 0) outputfile = "data_cleaning.csv"
     if (tools::file_ext(outputfile) != "csv") {
       ext = tools::file_ext(outputfile)
       if (ext == "") outputfile = paste0(outputfile, ".csv") else outputfile = gsub(ext, "csv", outputfile)
     }
-    write.csv(x = data_cleaning_file, file = file.path(dirname(outputfolder),outputfile),
+    write.csv(x = data_cleaning_file, file = file.path(dirname(outputfolder), outputfile),
               row.names = FALSE, na = "")
   } else {
     cat("\nNo short, long, or incoherent nights according to sleeplog")

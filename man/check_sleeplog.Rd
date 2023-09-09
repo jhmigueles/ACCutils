@@ -8,8 +8,6 @@ check_sleeplog(
   loglocation,
   coln1 = c(),
   colid = c(),
-  nnights = c(),
-  sleeplogsep = ",",
   desiredtz = "",
   meta.sleep.folder = c(),
   SPTlowerLimit = 4,
@@ -24,10 +22,6 @@ check_sleeplog(
 \item{coln1}{Column number in the sleep log spreadsheet where the onset of the first night starts}
 
 \item{colid}{Column number in the sleep log spreadsheet in which the participant ID code is stored (default = 1)}
-
-\item{nnights}{Number of nights for which sleep log information should be available. It assumes that this is constant within a study. If sleep log information is missing for certain nights then leave these blank}
-
-\item{sleeplogsep}{Value used as sep argument for reading sleeplog csv file, usually "," or ";".}
 
 \item{desiredtz}{Character (default = "", i.e., system timezone). Timezone in which device was configured and experiments took place. If experiments took place in a different timezone, then use this argument for the timezone in which the experiments took place and argument configtz to specify where the device was configured. See also https://en.wikipedia.org/wiki/Zone.tab}
 
